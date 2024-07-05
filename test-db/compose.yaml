@@ -1,0 +1,10 @@
+services:
+  database:
+    image: mysql
+    volumes:
+       - "./init:/docker-entrypoint-initdb.d"
+       - "./soal.sql:/soal.sql"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - '3306:3306'
