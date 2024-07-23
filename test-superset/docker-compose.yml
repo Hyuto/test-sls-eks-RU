@@ -1,0 +1,24 @@
+services:
+  postgressql:
+    image: postgres 
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+    command: postgres -c max_connections=200
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", $POSTGRES_DB]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  superset:
+    build: ./superset-hub
+    container_name: superset
+    env_file: ./.env
+    depends_on:
+      postgressql:
+        condition: service_healthy
+    ports:
+      - $SUPERSET_LOCAL_PORT:$SUPERSET_LOCAL_PORT

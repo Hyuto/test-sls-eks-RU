@@ -1,0 +1,25 @@
+services:
+  sqlserverdb:
+    #build: ./database
+    image: mcr.microsoft.com/mssql/server
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - $MSSQL_TCP_PORT:$MSSQL_DOCKER_PORT
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
+  sqlserverdb.configurator:
+    image: mcr.microsoft.com/mssql/server
+    env_file: ./.env
+    volumes:
+      - ./init-db.sql:/init-db.sql
+    depends_on:
+      sqlserverdb:
+        condition: service_healthy
+    command: >
+      bash -c '/opt/mssql-tools/bin/sqlcmd -S sqlserverdb -U sa -P $MSSQL_SA_PASSWORD -d master -i /init-db.sql'
+    
